@@ -1,5 +1,6 @@
 resource "openstack_networking_network_v2" "private_net" {
-  name = "private-net"
+  # name = "private-net"
+  name = "private"
 }
 
 resource "openstack_networking_subnet_v2" "private_subnet" {
@@ -10,9 +11,14 @@ resource "openstack_networking_subnet_v2" "private_subnet" {
   dns_nameservers = ["8.8.8.8"]
 }
 
+data "openstack_networking_network_v2" "external_network" {
+  name = var.external_network
+}
+
 resource "openstack_networking_router_v2" "router" {
   name                = "router"
-  external_network_id = var.external_network
+  # external_network_id = var.external_network
+  external_network_id = data.openstack_networking_network_v2.external_network.id
 }
 
 resource "openstack_networking_router_interface_v2" "router_interface" {
@@ -69,6 +75,11 @@ resource "openstack_networking_port_v2" "ports" {
   # network_id = openstack_networking_network_v2.id
   network_id = openstack_networking_network_v2.private_net.id
   # network_id = openstack_compute_instance_v2.vm.network[count.index].uuid
+  fixed_ip {
+    subnet_id = openstack_networking_subnet_v2.private_subnet.id
+  }
+
+  security_group_ids = [openstack_networking_secgroup_v2.secgroup.id]
 }
 
 resource "openstack_networking_floatingip_associate_v2" "fip_assoc" {
