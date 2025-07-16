@@ -43,7 +43,8 @@ resource "openstack_networking_secgroup_rule_v2" "icmp" {
 }
 
 resource "openstack_compute_instance_v2" "vm" {
-  name            = "my-vm"
+  count = var.vm_count
+  name            = "my-vm-${count.index + 1}"
   image_name      = "Ubuntu 22.04 Jammy"
   flavor_name     = var.flavor_name
   key_pair        = var.keypair_name
@@ -51,36 +52,28 @@ resource "openstack_compute_instance_v2" "vm" {
 
   network {
     uuid = openstack_networking_network_v2.private_net.id
+    port = openstack_networking_port_v2.ports[count.index].id
   }
 }
 
 resource "openstack_networking_floatingip_v2" "fip" {
+  count = var.vm_count
   pool = "public"
-  description = "Floating IP for my-vm"
+  description = "Floating IP for my-vm-${count.index + 1}"
 }
 
-resource "openstack_networking_port_v2" "port_1" {
-  network_id = openstack_compute_instance_v2.vm.network[0].uuid
+resource "openstack_networking_port_v2" "ports" {
+  count = var.vm_count
+  name = "vm-port-${count.index + 1}"
+  # network_id = openstack_compute_instance_v2.vm.network[0].uuid
+  # network_id = openstack_networking_network_v2.id
+  network_id = openstack_networking_network_v2.private_net.id
+  # network_id = openstack_compute_instance_v2.vm.network[count.index].uuid
 }
 
 resource "openstack_networking_floatingip_associate_v2" "fip_assoc" {
-  floating_ip = openstack_networking_floatingip_v2.fip.address
+  count = var.vm_count
+  floating_ip = openstack_networking_floatingip_v2.fip[count.index].address
   # port_id     = openstack_compute_instance_v2.vm.network[0].port
-  port_id     = openstack_networking_port_v2.port_1.id
+  port_id     = openstack_networking_port_v2.ports[count.index].id
 }
-
-
-# output "instance_ip" {
-#   description = "The public IP address of the instance"
-#   value       = openstack_networking_floatingip_v2.fip.address
-# }
-
-# output "port_id" {
-#   description = "The por_id for debug"
-#   value = openstack_compute_instance_v2.vm.network[0].port
-# }
-
-# output "IPv4" {
-#   description = "Test"
-#   value = openstack_compute_instance_v2.vm.network[0].uuid
-# }

@@ -1,17 +1,3 @@
-# variable "auth_url" {}
-# variable "tenant_name" {}
-# variable "user_name" {}
-# variable "password" {}
-# variable "region" {}
-# variable "domain_name" {}
-# variable "image_name" {}
-# variable "flavor_name" {}
-# variable "keypair_name" {}
-# variable "external_network" {
-#   description = "The ID of the external network for the router."
-#   type = string
-#   default = "2563758b-4a31-4d41-a591-701568108c2e"
-# }
 variable "auth_url" {
   description = "OpenStack auth URL"
   type        = string
@@ -58,7 +44,18 @@ variable "keypair_name" {
   type        = string
 }
 
+variable "vm_count" {
+  description = "Number of instances/vm's"
+  # default = 3
+}
+
 variable "external_network" {
   description = "ID of the external network"
-  type        = string
+  type = string
+
 }
+
+# variable "external_network" {
+  # description = "ID of the external network"
+  # type        = string
+# }
