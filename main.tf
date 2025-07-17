@@ -1,5 +1,4 @@
 resource "openstack_networking_network_v2" "private_net" {
-  # name = "private-net"
   name = "private"
 }
 
@@ -17,7 +16,6 @@ data "openstack_networking_network_v2" "external_network" {
 
 resource "openstack_networking_router_v2" "router" {
   name                = "router"
-  # external_network_id = var.external_network
   external_network_id = data.openstack_networking_network_v2.external_network.id
 }
 
@@ -71,10 +69,7 @@ resource "openstack_networking_floatingip_v2" "fip" {
 resource "openstack_networking_port_v2" "ports" {
   count = var.vm_count
   name = "vm-port-${count.index + 1}"
-  # network_id = openstack_compute_instance_v2.vm.network[0].uuid
-  # network_id = openstack_networking_network_v2.id
   network_id = openstack_networking_network_v2.private_net.id
-  # network_id = openstack_compute_instance_v2.vm.network[count.index].uuid
   fixed_ip {
     subnet_id = openstack_networking_subnet_v2.private_subnet.id
   }
@@ -85,6 +80,9 @@ resource "openstack_networking_port_v2" "ports" {
 resource "openstack_networking_floatingip_associate_v2" "fip_assoc" {
   count = var.vm_count
   floating_ip = openstack_networking_floatingip_v2.fip[count.index].address
-  # port_id     = openstack_compute_instance_v2.vm.network[0].port
   port_id     = openstack_networking_port_v2.ports[count.index].id
 }
+
+
+
+# curl -sfL https://get.k3s.io | K3S_URL=https://172.24.4.125:6443 K3S_TOKEN=K10528e63b5c9fe3d1844c5574b308191b6f3dc18d57d3f146f83a5fab3f8c84283::server:cd3add876693858b0a56f0a9e2ed8e8b sh -
